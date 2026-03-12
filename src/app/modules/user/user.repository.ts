@@ -3,19 +3,44 @@ import { client } from '../../config/db';
 
 export const findAll = async () => {
   return await client.user.findMany({
-    select: { password: false },
+    where: { is_deleted: false },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role_id: true,
+      role: true,
+      status: true,
+      is_deleted: true,
+      created_at: true,
+      updated_at: true,
+    },
   });
 };
 
 export const findById = async (id: number) => {
   return await client.user.findUnique({
-    where: { id },
-    select: { password: false },
+    where: { id, is_deleted: false },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role_id: true,
+      role: true,
+      status: true,
+      is_deleted: true,
+      created_at: true,
+      updated_at: true,
+    },
   });
 };
 
 export const update = async (id: number, data: Prisma.UserUpdateInput) => {
-  return await client.user.update({ where: { id }, data });
+  return await client.user.update({
+    where: { id },
+    data,
+    include: { role: true },
+  });
 };
 
 export const remove = async (id: number) => {
