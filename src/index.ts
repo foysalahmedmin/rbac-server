@@ -34,7 +34,11 @@ async function main() {
   });
 }
 
-main();
+if (!process.env.VERCEL) {
+  main();
+}
+
+export default app;
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (reason) => {
