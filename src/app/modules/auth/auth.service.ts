@@ -1,9 +1,9 @@
 import bcrypt from 'bcrypt';
 import httpStatus from 'http-status';
-import prisma from '../../../prisma/client';
 import AppError from '../../builder/app-error';
 import { env } from '../../config/env';
 import { sendEmail } from '../../utils/send-email';
+import * as AuthRepository from './auth.repository';
 import {
   TChangePassword,
   TForgetPassword,
@@ -14,43 +14,12 @@ import {
 } from './auth.type';
 import { createToken, isPasswordMatched, verifyToken } from './auth.utils';
 
-// === Find user by id
 export const isUserExist = async (id: number) => {
-  return await prisma.user.findUnique({
-    where: { id, is_deleted: false },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      password: true,
-      role: true,
-      status: true,
-      is_deleted: true,
-    },
-  });
-};
-
-// === Find user by custom email field
-export const isUserExistByEmail = async (email: string) => {
-  return await prisma.user.findUnique({
-    where: {
-      email,
-      is_deleted: false,
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      password: true,
-      role: true,
-      status: true,
-      is_deleted: true,
-    },
-  });
+  return await AuthRepository.findById(id);
 };
 
 export const signIn = async (payload: TSignIn) => {
-  const user = await isUserExistByEmail(payload.email);
+  const user = await AuthRepository.findByEmail(payload.email);
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
   }
@@ -101,18 +70,16 @@ export const signUp = async (payload: TSignUp) => {
   payload.password = hashedPassword;
   payload.role = payload.role || 'customer';
 
-  const exist = await isUserExistByEmail(payload.email);
+  const exist = await AuthRepository.findByEmail(payload.email);
   if (exist) {
     throw new AppError(httpStatus.CONFLICT, 'User already exists!');
   }
 
-  const user = await prisma.user.create({
-    data: {
-      name: payload.name,
-      email: payload.email,
-      password: payload.password,
-      role: payload.role,
-    },
+  const user = await AuthRepository.create({
+    name: payload.name,
+    email: payload.email,
+    password: payload.password,
+    role: payload.role,
   });
 
   const jwtPayload: TJwtPayload = {
@@ -144,7 +111,7 @@ export const signUp = async (payload: TSignUp) => {
 export const refreshToken = async (token: string) => {
   const { email } = verifyToken(token, env.jwt_refresh_secret);
 
-  const user = await isUserExistByEmail(email);
+  const user = await AuthRepository.findByEmail(email);
 
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
@@ -178,7 +145,7 @@ export const refreshToken = async (token: string) => {
 };
 
 export const changePassword = async (payload: TChangePassword) => {
-  const user = await isUserExistByEmail(payload.email);
+  const user = await AuthRepository.findByEmail(payload.email);
 
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
@@ -201,21 +168,16 @@ export const changePassword = async (payload: TChangePassword) => {
     Number(env.bcrypt_salt_rounds),
   );
 
-  const result = await prisma.user.update({
-    where: {
-      id: user.id,
-    },
-    data: {
-      password: hashedNewPassword,
-      updated_at: new Date(),
-    },
+  const result = await AuthRepository.update(user.id, {
+    password: hashedNewPassword,
+    updated_at: new Date(),
   });
 
   return result;
 };
 
 export const forgetPassword = async (payload: TForgetPassword) => {
-  const user = await isUserExistByEmail(payload.email);
+  const user = await AuthRepository.findByEmail(payload.email);
 
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
@@ -255,7 +217,7 @@ export const forgetPassword = async (payload: TForgetPassword) => {
 };
 
 export const resetPassword = async (payload: TResetPassword, token: string) => {
-  const user = await isUserExistByEmail(payload.email);
+  const user = await AuthRepository.findByEmail(payload.email);
 
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
@@ -280,14 +242,9 @@ export const resetPassword = async (payload: TResetPassword, token: string) => {
     Number(env.bcrypt_salt_rounds),
   );
 
-  const result = await prisma.user.update({
-    where: {
-      id: user.id,
-    },
-    data: {
-      password: hashedPassword,
-      updated_at: new Date(),
-    },
+  const result = await AuthRepository.update(user.id, {
+    password: hashedPassword,
+    updated_at: new Date(),
   });
 
   return result;

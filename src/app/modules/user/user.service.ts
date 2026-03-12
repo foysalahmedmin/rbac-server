@@ -1,32 +1,26 @@
-/* eslint-disable no-console */
 import { Prisma } from '@prisma/client';
-import prisma from '../../../prisma/client';
+import * as UserRepository from './user.repository';
 
 export const getUsers = async () => {
-  return await prisma.user.findMany({
-    select: { password: false },
-  });
+  return await UserRepository.findAll();
 };
 
 export const getUser = async (id: number) => {
-  return await prisma.user.findUnique({
-    where: { id },
-    select: { password: false },
-  });
+  return await UserRepository.findById(id);
 };
 
 export const updateUser = async (id: number, data: Prisma.UserUpdateInput) => {
-  return await prisma.user.update({ where: { id }, data });
+  return await UserRepository.update(id, data);
 };
 
 export const deleteUser = async (id: number) => {
-  return await prisma.user.delete({ where: { id } });
+  return await UserRepository.remove(id);
 };
 
 export const getSelf = async (id: number) => {
-  return await prisma.user.findUnique({ where: { id } });
+  return await UserRepository.findById(id);
 };
 
 export const updateSelf = async (id: number, data: Prisma.UserUpdateInput) => {
-  return await prisma.user.update({ where: { id }, data });
+  return await UserRepository.update(id, data);
 };
