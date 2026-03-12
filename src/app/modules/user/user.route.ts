@@ -53,4 +53,26 @@ router.patch(
   UserControllers.restoreUser,
 );
 
+router.patch(
+  '/:id/suspend',
+  auth(),
+  access('manage_users'),
+  UserControllers.suspendUser,
+);
+
+router.patch(
+  '/:id/ban',
+  auth(),
+  access('manage_users'),
+  UserControllers.banUser,
+);
+
+router.post(
+  '/assign-permissions',
+  auth(),
+  access('manage_users'),
+  validation(UserValidations.assignUserPermissionsSchema),
+  UserControllers.assignPermissions,
+);
+
 export default router;

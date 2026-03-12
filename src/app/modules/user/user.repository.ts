@@ -21,16 +21,13 @@ export const findAll = async () => {
 export const findById = async (id: number) => {
   return await client.user.findUnique({
     where: { id, is_deleted: false },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role_id: true,
+    include: {
       role: true,
-      status: true,
-      is_deleted: true,
-      created_at: true,
-      updated_at: true,
+      direct_permissions: {
+        include: {
+          permission: true,
+        },
+      },
     },
   });
 };
@@ -58,5 +55,31 @@ export const restore = async (id: number) => {
   return await client.user.update({
     where: { id },
     data: { is_deleted: false, deleted_at: null },
+  });
+};
+
+export const assignPermission = async (
+  user_id: number,
+  permission_id: number,
+) => {
+  return await client.userPermission.create({
+    data: {
+      user_id,
+      permission_id,
+    },
+  });
+};
+
+export const removePermission = async (
+  user_id: number,
+  permission_id: number,
+) => {
+  return await client.userPermission.delete({
+    where: {
+      user_id_permission_id: {
+        user_id,
+        permission_id,
+      },
+    },
   });
 };

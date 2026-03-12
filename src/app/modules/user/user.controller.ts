@@ -99,3 +99,44 @@ export const updateMe = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
+export const suspendUser = catchAsync(async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id as string);
+  const result = await UserService.suspendUser(id);
+
+  sendResponse(res, {
+    status: 200,
+    success: true,
+    message: 'User suspended successfully',
+    data: result,
+  });
+});
+
+export const banUser = catchAsync(async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id as string);
+  const result = await UserService.banUser(id);
+
+  sendResponse(res, {
+    status: 200,
+    success: true,
+    message: 'User banned successfully',
+    data: result,
+  });
+});
+
+export const assignPermissions = catchAsync(
+  async (req: Request, res: Response) => {
+    const { user_id, permission_ids } = req.body;
+    const result = await UserService.assignPermissionsToUser(
+      user_id,
+      permission_ids,
+    );
+
+    sendResponse(res, {
+      status: 200,
+      success: true,
+      message: 'Permissions assigned to user successfully',
+      data: result,
+    });
+  },
+);

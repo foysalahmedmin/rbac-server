@@ -17,3 +17,10 @@ export const userSchema = z.object({
 export const updateUserSchema = z.object({
   body: userSchema.shape.body.partial(),
 });
+
+export const assignUserPermissionsSchema = z.object({
+  body: z.object({
+    user_id: z.number(),
+    permission_ids: z.array(z.number()),
+  }),
+});
