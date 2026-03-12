@@ -1,7 +1,7 @@
-import bcrypt from "bcrypt";
-import jwt, { JwtPayload } from "jsonwebtoken";
-import { ExpiresIn } from "../../config/env";
-import { TJwtPayload } from "./auth.type";
+import bcrypt from 'bcrypt';
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import { ExpiresIn } from '../../config/env';
+import { TJwtPayload } from './auth.type';
 
 export const createToken = (
   jwtPayload: Partial<TJwtPayload>,
@@ -20,4 +20,13 @@ export const isPasswordMatched = async (
   hashedPassword: string,
 ) => {
   return await bcrypt.compare(plainPassword, hashedPassword);
+};
+
+export const isJWTIssuedBeforePasswordChanged = (
+  passwordChangedTimestamp: Date,
+  jwtIssuedTimestamp: number,
+) => {
+  const passwordChangedTime =
+    new Date(passwordChangedTimestamp).getTime() / 1000;
+  return passwordChangedTime > jwtIssuedTimestamp;
 };

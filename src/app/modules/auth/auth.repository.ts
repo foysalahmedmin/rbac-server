@@ -12,6 +12,7 @@ export const findById = async (id: number) => {
       role: true,
       status: true,
       is_deleted: true,
+      password_changed_at: true,
     },
   });
 };
@@ -30,6 +31,7 @@ export const findByEmail = async (email: string) => {
       role: true,
       status: true,
       is_deleted: true,
+      password_changed_at: true,
     },
   });
 };
