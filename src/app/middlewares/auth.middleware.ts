@@ -12,13 +12,17 @@ import catchAsync from '../utils/catch-async';
 const auth = (...roles: TRole[]) => {
   return catchAsync(
     async (req: Request, _res: Response, next: NextFunction) => {
-      const token = req.headers.authorization;
+      let token = req.headers.authorization;
 
       if (!token) {
         throw new AppError(
           httpStatus.UNAUTHORIZED,
           'You do not have the necessary permissions to access this resource.',
         );
+      }
+
+      if (token.startsWith('Bearer ')) {
+        token = token.split(' ')[1];
       }
 
       const decoded = jwt.verify(
