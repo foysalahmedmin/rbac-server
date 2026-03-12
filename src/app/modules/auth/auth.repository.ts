@@ -1,8 +1,8 @@
 import { Prisma } from '@prisma/client';
-import prisma from '../../../prisma/client';
+import { client } from '../../config/db';
 
 export const findById = async (id: number) => {
-  return await prisma.user.findUnique({
+  return await client.user.findUnique({
     where: { id, is_deleted: false },
     select: {
       id: true,
@@ -18,7 +18,7 @@ export const findById = async (id: number) => {
 };
 
 export const findByEmail = async (email: string) => {
-  return await prisma.user.findUnique({
+  return await client.user.findUnique({
     where: {
       email,
       is_deleted: false,
@@ -37,13 +37,13 @@ export const findByEmail = async (email: string) => {
 };
 
 export const create = async (data: Prisma.UserCreateInput) => {
-  return await prisma.user.create({
+  return await client.user.create({
     data,
   });
 };
 
 export const update = async (id: number, data: Prisma.UserUpdateInput) => {
-  return await prisma.user.update({
+  return await client.user.update({
     where: { id },
     data,
   });
