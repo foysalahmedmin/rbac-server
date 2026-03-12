@@ -1,14 +1,42 @@
 import { Prisma } from '@prisma/client';
 import { client } from '../../config/db';
 
-export const findAll = async () => {
-  return await client.role.findMany({
-    include: {
+import AppQuery from '../../builder/app-query';
+
+export const findAll = async (query: Record<string, unknown> = {}) => {
+  const appQuery = new AppQuery(query)
+    .search(['name'])
+    .filter()
+    .sort()
+    .paginate()
+    .relations()
+    .build();
+
+  if (!appQuery.include) {
+    appQuery.include = {
       _count: {
         select: { users: true },
       },
+    };
+  }
+
+  const [data, total] = await Promise.all([
+    client.role.findMany(appQuery as Prisma.RoleFindManyArgs),
+    client.role.count({ where: appQuery.where as Prisma.RoleWhereInput }),
+  ]);
+
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage: Math.ceil(total / limit),
     },
-  });
+    data,
+  };
 };
 
 export const findById = async (id: number) => {

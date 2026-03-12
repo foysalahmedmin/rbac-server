@@ -3,13 +3,16 @@ import catchAsync from '../../utils/catch-async';
 import sendResponse from '../../utils/send-response';
 import * as AuditLogServices from './audit-log.service';
 
-export const getAuditLogs = catchAsync(async (_req, res) => {
-  const result = await AuditLogServices.getAllLogs();
+export const getAuditLogs = catchAsync(async (req, res) => {
+  const result = await AuditLogServices.getAllLogs(
+    req.query as Record<string, unknown>,
+  );
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
     message: 'Audit logs fetched successfully',
-    data: result,
+    meta: result.meta,
+    data: result.data,
   });
 });
 

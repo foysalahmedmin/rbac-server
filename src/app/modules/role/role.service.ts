@@ -14,8 +14,8 @@ export const createRole = async (payload: {
   return await RoleRepository.create(payload);
 };
 
-export const getRoles = async () => {
-  return await RoleRepository.findAll();
+export const getRoles = async (query: Record<string, unknown>) => {
+  return await RoleRepository.findAll(query);
 };
 
 export const getRoleById = async (id: number) => {

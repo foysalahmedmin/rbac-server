@@ -13,13 +13,16 @@ export const createRole = catchAsync(async (req, res) => {
   });
 });
 
-export const getRoles = catchAsync(async (_req, res) => {
-  const result = await RoleServices.getRoles();
+export const getRoles = catchAsync(async (req, res) => {
+  const result = await RoleServices.getRoles(
+    req.query as Record<string, unknown>,
+  );
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
-    message: 'Roles fetched successfully',
-    data: result,
+    message: 'Roles retrieved successfully',
+    meta: result.meta,
+    data: result.data,
   });
 });
 

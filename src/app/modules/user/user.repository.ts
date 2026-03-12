@@ -1,10 +1,24 @@
 import { Prisma } from '@prisma/client';
 import { client } from '../../config/db';
 
-export const findAll = async () => {
-  return await client.user.findMany({
-    where: { is_deleted: false },
-    select: {
+import AppQuery from '../../builder/app-query';
+
+export const findAll = async (query: Record<string, unknown>) => {
+  const appQuery = new AppQuery(query)
+    .search(['name', 'email'])
+    .filter()
+    .sort()
+    .paginate()
+    .relations()
+    .build();
+
+  appQuery.where = {
+    ...((appQuery.where as Record<string, unknown>) || {}),
+    is_deleted: false,
+  };
+
+  if (!appQuery.select && !appQuery.include) {
+    appQuery.select = {
       id: true,
       name: true,
       email: true,
@@ -14,8 +28,26 @@ export const findAll = async () => {
       is_deleted: true,
       created_at: true,
       updated_at: true,
+    };
+  }
+
+  const [data, total] = await Promise.all([
+    client.user.findMany(appQuery as Prisma.UserFindManyArgs),
+    client.user.count({ where: appQuery.where as Prisma.UserWhereInput }),
+  ]);
+
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage: Math.ceil(total / limit),
     },
-  });
+    data,
+  };
 };
 
 export const findById = async (id: number) => {

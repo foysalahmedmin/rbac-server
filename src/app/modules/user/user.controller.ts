@@ -3,14 +3,17 @@ import catchAsync from '../../utils/catch-async';
 import sendResponse from '../../utils/send-response';
 import * as UserService from './user.service';
 
-export const getUsers = catchAsync(async (_req: Request, res: Response) => {
-  const result = await UserService.getUsers();
+export const getUsers = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.getUsers(
+    req.query as Record<string, unknown>,
+  );
 
   sendResponse(res, {
     status: 200,
     success: true,
     message: 'Users retrieved successfully',
-    data: result,
+    meta: result.meta,
+    data: result.data,
   });
 });
 

@@ -1,10 +1,11 @@
+import { Prisma } from '@prisma/client';
 import httpStatus from 'http-status';
 import AppError from '../../builder/app-error';
 import { client } from '../../config/db';
 import * as UserRepository from './user.repository';
 
-export const getUsers = async () => {
-  return await UserRepository.findAll();
+export const getUsers = async (query: Record<string, unknown>) => {
+  return await UserRepository.findAll(query);
 };
 
 export const getUser = async (id: number) => {
@@ -15,7 +16,10 @@ export const getUser = async (id: number) => {
   return user;
 };
 
-export const updateUser = async (id: number, payload: any) => {
+export const updateUser = async (
+  id: number,
+  payload: Prisma.UserUpdateInput,
+) => {
   const user = await UserRepository.findById(id);
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
@@ -47,7 +51,7 @@ export const getMe = async (id: number) => {
   return await UserRepository.findById(id);
 };
 
-export const updateMe = async (id: number, data: any) => {
+export const updateMe = async (id: number, data: Prisma.UserUpdateInput) => {
   return await UserRepository.update(id, data);
 };
 

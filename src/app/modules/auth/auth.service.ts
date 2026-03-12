@@ -12,14 +12,15 @@ import {
   TResetPassword,
   TSignIn,
   TSignUp,
+  TUserWithPermissions,
 } from './auth.type';
 import { createToken, isPasswordMatched, verifyToken } from './auth.utils';
 
-const flattenPermissions = (user: any) => {
+const flattenPermissions = (user: TUserWithPermissions) => {
   const rolePermissions =
-    user.role?.permissions?.map((rp: any) => rp.permission.slug) || [];
+    user.role?.permissions?.map((rp) => rp.permission.slug) || [];
   const directPermissions =
-    user.direct_permissions?.map((up: any) => up.permission.slug) || [];
+    user.direct_permissions?.map((up) => up.permission.slug) || [];
   return Array.from(new Set([...rolePermissions, ...directPermissions]));
 };
 

@@ -11,8 +11,8 @@ export const logAction = async (data: {
   return await AuditLogRepository.create(data);
 };
 
-export const getAllLogs = async () => {
-  return await AuditLogRepository.findAll();
+export const getAllLogs = async (query: Record<string, unknown>) => {
+  return await AuditLogRepository.findAll(query);
 };
 
 export const getLogsByUser = async (user_id: number) => {

@@ -34,3 +34,19 @@ export type TJwtPayload = {
   role: TRole;
   permissions: string[];
 };
+
+export type TUserWithPermissions = {
+  role: {
+    name: string;
+    permissions: {
+      permission: {
+        slug: string;
+      };
+    }[];
+  } | null;
+  direct_permissions: {
+    permission: {
+      slug: string;
+    };
+  }[];
+};

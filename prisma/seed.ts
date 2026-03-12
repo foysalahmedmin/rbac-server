@@ -1,5 +1,5 @@
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '@prisma/client';
+import { Permission, PrismaClient, Role } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import { Pool } from 'pg';
@@ -26,7 +26,7 @@ async function main() {
     { name: 'View Audit Logs', slug: 'view_audit_logs', module: 'audit_logs' },
   ];
 
-  const permissions = [];
+  const permissions: Permission[] = [];
   for (const p of permissionsData) {
     const permission = await prisma.permission.upsert({
       where: { slug: p.slug },
@@ -44,7 +44,7 @@ async function main() {
     { name: 'customer', description: 'Self-service portal access' },
   ];
 
-  const roles: Record<string, any> = {};
+  const roles: Record<string, Role> = {};
   for (const r of rolesData) {
     const role = await prisma.role.upsert({
       where: { name: r.name },
