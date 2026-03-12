@@ -15,6 +15,14 @@ import {
 } from './auth.type';
 import { createToken, isPasswordMatched, verifyToken } from './auth.utils';
 
+const flattenPermissions = (user: any) => {
+  const rolePermissions =
+    user.role?.permissions?.map((rp: any) => rp.permission.slug) || [];
+  const directPermissions =
+    user.direct_permissions?.map((up: any) => up.permission.slug) || [];
+  return Array.from(new Set([...rolePermissions, ...directPermissions]));
+};
+
 export const isUserExist = async (id: number) => {
   return await AuthRepository.findById(id);
 };
@@ -37,11 +45,14 @@ export const signIn = async (payload: TSignIn) => {
     throw new AppError(httpStatus.FORBIDDEN, 'Password do not matched!');
   }
 
+  const permissions = flattenPermissions(user);
+
   const jwtPayload: TJwtPayload = {
     id: user.id,
     name: user.name,
     email: user.email,
     role: user.role.name,
+    permissions,
   };
 
   const accessToken = createToken(
@@ -79,6 +90,13 @@ export const signUp = async (payload: TSignUp) => {
   // Fetch role by name
   const role = await client.role.findUnique({
     where: { name: payload.role || 'customer' },
+    include: {
+      permissions: {
+        include: {
+          permission: true,
+        },
+      },
+    },
   });
 
   if (!role) {
@@ -92,14 +110,32 @@ export const signUp = async (payload: TSignUp) => {
       password: payload.password,
       role_id: role.id,
     },
-    include: { role: true },
+    include: {
+      role: {
+        include: {
+          permissions: {
+            include: {
+              permission: true,
+            },
+          },
+        },
+      },
+      direct_permissions: {
+        include: {
+          permission: true,
+        },
+      },
+    },
   });
+
+  const permissions = flattenPermissions(user);
 
   const jwtPayload: TJwtPayload = {
     id: user.id,
     name: user.name,
     email: user.email,
     role: user.role.name,
+    permissions,
   };
 
   const accessToken = createToken(
@@ -138,11 +174,14 @@ export const refreshToken = async (token: string) => {
     throw new AppError(httpStatus.FORBIDDEN, `User is ${user.status}!`);
   }
 
+  const permissions = flattenPermissions(user);
+
   const jwtPayload: TJwtPayload = {
     id: user.id,
     name: user.name,
     email: user.email,
     role: user.role.name,
+    permissions,
   };
 
   const accessToken = createToken(
@@ -205,11 +244,14 @@ export const forgetPassword = async (payload: TForgetPassword) => {
     throw new AppError(httpStatus.FORBIDDEN, `User is ${user.status}!`);
   }
 
+  const permissions = flattenPermissions(user);
+
   const jwtPayload: TJwtPayload = {
     id: user.id,
     name: user.name,
     email: user.email,
     role: user.role.name,
+    permissions,
   };
 
   const token = createToken(

@@ -4,16 +4,21 @@ import { client } from '../../config/db';
 export const findById = async (id: number) => {
   return await client.user.findUnique({
     where: { id, is_deleted: false },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      password: true,
-      role: true, // Relation object
-      role_id: true,
-      status: true,
-      is_deleted: true,
-      password_changed_at: true,
+    include: {
+      role: {
+        include: {
+          permissions: {
+            include: {
+              permission: true,
+            },
+          },
+        },
+      },
+      direct_permissions: {
+        include: {
+          permission: true,
+        },
+      },
     },
   });
 };
@@ -24,16 +29,21 @@ export const findByEmail = async (email: string) => {
       email,
       is_deleted: false,
     },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      password: true,
-      role: true, // Relation object
-      role_id: true,
-      status: true,
-      is_deleted: true,
-      password_changed_at: true,
+    include: {
+      role: {
+        include: {
+          permissions: {
+            include: {
+              permission: true,
+            },
+          },
+        },
+      },
+      direct_permissions: {
+        include: {
+          permission: true,
+        },
+      },
     },
   });
 };
@@ -41,6 +51,7 @@ export const findByEmail = async (email: string) => {
 export const create = async (data: Prisma.UserCreateInput) => {
   return await client.user.create({
     data,
+    include: { role: true },
   });
 };
 

@@ -1,4 +1,4 @@
-import { TRole } from "../../types/role.type";
+import { TRole } from '../../types/role.type';
 
 export type TSignIn = {
   email: string;
@@ -32,4 +32,5 @@ export type TJwtPayload = {
   name: string;
   email: string;
   role: TRole;
+  permissions: string[];
 };
