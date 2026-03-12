@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import httpStatus from 'http-status';
 import AppError from '../../../builder/app-error';
+import { client } from '../../../config/db';
 import * as AuthRepository from '../auth.repository';
 import * as AuthService from '../auth.service';
 
@@ -8,6 +9,16 @@ import * as AuthService from '../auth.service';
 jest.mock('../auth.repository');
 jest.mock('bcrypt');
 jest.mock('../../../utils/send-email');
+jest.mock('../../../config/db', () => ({
+  client: {
+    role: {
+      findUnique: jest.fn(),
+    },
+    user: {
+      create: jest.fn(),
+    },
+  },
+}));
 jest.mock('../auth.utils', () => ({
   ...jest.requireActual('../auth.utils'),
   createToken: jest.fn().mockReturnValue('mock-token'),
@@ -21,7 +32,17 @@ describe('AuthService', () => {
     name: 'Test User',
     email: 'test@example.com',
     password: 'hashed-password',
-    role: 'customer',
+    role: {
+      name: 'customer',
+      permissions: [
+        {
+          permission: {
+            slug: 'test-permission',
+          },
+        },
+      ],
+    },
+    direct_permissions: [],
     status: 'active',
     is_deleted: false,
     password_changed_at: null,
@@ -53,15 +74,17 @@ describe('AuthService', () => {
       ).rejects.toThrow(new AppError(httpStatus.NOT_FOUND, 'User not found!'));
     });
 
-    it('should throw error if user is blocked', async () => {
+    it('should throw error if user is suspended', async () => {
       (AuthRepository.findByEmail as jest.Mock).mockResolvedValue({
         ...mockUser,
-        status: 'blocked',
+        status: 'suspended',
       });
 
       await expect(
         AuthService.signIn({ email: 'test@example.com', password: 'any' }),
-      ).rejects.toThrow(new AppError(httpStatus.FORBIDDEN, 'User is blocked!'));
+      ).rejects.toThrow(
+        new AppError(httpStatus.FORBIDDEN, 'User is suspended!'),
+      );
     });
   });
 
@@ -69,7 +92,11 @@ describe('AuthService', () => {
     it('should successfully register a new user', async () => {
       (AuthRepository.findByEmail as jest.Mock).mockResolvedValue(null);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
-      (AuthRepository.create as jest.Mock).mockResolvedValue(mockUser);
+      (client.role.findUnique as jest.Mock).mockResolvedValue({
+        id: 2,
+        name: 'customer',
+      });
+      (client.user.create as jest.Mock).mockResolvedValue(mockUser);
 
       const result = await AuthService.signUp({
         name: 'New User',
@@ -78,7 +105,7 @@ describe('AuthService', () => {
       });
 
       expect(result).toHaveProperty('access_token');
-      expect(AuthRepository.create).toHaveBeenCalled();
+      expect(client.user.create).toHaveBeenCalled();
     });
 
     it('should throw error if user already exists', async () => {
