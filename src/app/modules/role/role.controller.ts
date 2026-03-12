@@ -13,7 +13,7 @@ export const createRole = catchAsync(async (req, res) => {
   });
 });
 
-export const getRoles = catchAsync(async (req, res) => {
+export const getRoles = catchAsync(async (_req, res) => {
   const result = await RoleServices.getRoles();
   sendResponse(res, {
     status: httpStatus.OK,

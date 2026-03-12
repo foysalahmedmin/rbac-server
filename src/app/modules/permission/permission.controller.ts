@@ -3,7 +3,7 @@ import catchAsync from '../../utils/catch-async';
 import sendResponse from '../../utils/send-response';
 import * as PermissionServices from './permission.service';
 
-export const getPermissions = catchAsync(async (req, res) => {
+export const getPermissions = catchAsync(async (_req, res) => {
   const result = await PermissionServices.getPermissions();
   sendResponse(res, {
     status: httpStatus.OK,

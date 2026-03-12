@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import auth from '../../middlewares/auth.middleware';
-import validateRequest from '../../middlewares/validate-request';
+import validation from '../../middlewares/validation.middleware';
 import * as RoleControllers from './role.controller';
 import {
   assignPermissionsSchema,
@@ -13,7 +13,7 @@ const router = Router();
 router.post(
   '/',
   auth('admin'),
-  validateRequest(createRoleSchema),
+  validation(createRoleSchema),
   RoleControllers.createRole,
 );
 
@@ -24,7 +24,7 @@ router.get('/:id', auth('admin', 'manager'), RoleControllers.getRoleById);
 router.patch(
   '/:id',
   auth('admin'),
-  validateRequest(updateRoleSchema),
+  validation(updateRoleSchema),
   RoleControllers.updateRole,
 );
 
@@ -33,7 +33,7 @@ router.delete('/:id', auth('admin'), RoleControllers.deleteRole);
 router.post(
   '/assign-permissions',
   auth('admin'),
-  validateRequest(assignPermissionsSchema),
+  validation(assignPermissionsSchema),
   RoleControllers.assignPermissions,
 );
 

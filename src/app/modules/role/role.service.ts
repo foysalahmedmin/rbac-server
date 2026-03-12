@@ -25,7 +25,10 @@ export const getRoleById = async (id: number) => {
   return role;
 };
 
-export const updateRole = async (id: number, payload: any) => {
+export const updateRole = async (
+  id: number,
+  payload: { name?: string; description?: string },
+) => {
   const role = await RoleRepository.findById(id);
   if (!role) {
     throw new AppError(httpStatus.NOT_FOUND, 'Role not found!');
