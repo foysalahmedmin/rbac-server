@@ -2,8 +2,8 @@ import httpStatus from 'http-status';
 import AppError from '../../builder/app-error';
 import * as PermissionRepository from './permission.repository';
 
-export const getPermissions = async () => {
-  return await PermissionRepository.findAll();
+export const getPermissions = async (query: Record<string, unknown>) => {
+  return await PermissionRepository.findAll(query);
 };
 
 export const getPermissionById = async (id: number) => {
