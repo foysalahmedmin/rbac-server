@@ -1,4 +1,5 @@
 import express from 'express';
+import { AuditLogRoutes } from '../modules/audit-log/audit-log.route';
 import authRouter from '../modules/auth/auth.route';
 import { PermissionRoutes } from '../modules/permission/permission.route';
 import { RoleRoutes } from '../modules/role/role.route';
@@ -22,6 +23,10 @@ const moduleRoutes = [
   {
     path: '/permissions',
     route: PermissionRoutes,
+  },
+  {
+    path: '/audit-logs',
+    route: AuditLogRoutes,
   },
 ];
 

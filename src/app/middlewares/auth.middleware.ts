@@ -7,6 +7,7 @@ import * as AuthServices from '../modules/auth/auth.service';
 import { TJwtPayload } from '../modules/auth/auth.type';
 import { isJWTIssuedBeforePasswordChanged } from '../modules/auth/auth.utils';
 import { TRole } from '../types/role.type';
+import { userStorage } from '../utils/async-storage';
 import catchAsync from '../utils/catch-async';
 
 const auth = (...roles: TRole[]) => {
@@ -64,7 +65,9 @@ const auth = (...roles: TRole[]) => {
       }
 
       req.user = decoded as TJwtPayload;
-      next();
+      userStorage.run({ id: user.id }, () => {
+        next();
+      });
     },
   );
 };
