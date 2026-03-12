@@ -8,7 +8,14 @@ jest.mock('../user.service');
 // Mock auth middleware to bypass it
 jest.mock('../../../middlewares/auth.middleware', () => {
   return jest.fn(() => (req: any, _res: any, next: any) => {
-    req.user = { id: 1, role: 'admin' };
+    req.user = { id: 1, role: 'admin', permissions: ['manage_users'] };
+    next();
+  });
+});
+
+// Mock access middleware to bypass it
+jest.mock('../../../middlewares/access.middleware', () => {
+  return jest.fn(() => (_req: any, _res: any, next: any) => {
     next();
   });
 });
@@ -18,7 +25,17 @@ describe('User Routes', () => {
     id: 1,
     name: 'Test User',
     email: 'test@example.com',
-    role: 'customer',
+    role: { id: 1, name: 'customer' },
+  };
+
+  const mockPaginatedResult = {
+    meta: {
+      page: 1,
+      limit: 10,
+      total: 1,
+      totalPage: 1,
+    },
+    data: [mockUser],
   };
 
   afterEach(() => {
@@ -26,14 +43,17 @@ describe('User Routes', () => {
   });
 
   describe('GET /api/v1/users/', () => {
-    it('should return all users', async () => {
-      (UserService.getUsers as jest.Mock).mockResolvedValue([mockUser]);
+    it('should return all users with pagination', async () => {
+      (UserService.getUsers as jest.Mock).mockResolvedValue(
+        mockPaginatedResult,
+      );
 
       const response = await request(app).get('/api/v1/users/');
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toEqual([mockUser]);
+      expect(response.body.meta).toEqual(mockPaginatedResult.meta);
+      expect(response.body.data).toEqual(mockPaginatedResult.data);
     });
   });
 
@@ -72,6 +92,7 @@ describe('User Routes', () => {
         .send(updateData);
 
       expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
       expect(response.body.data.name).toBe('Updated');
     });
   });
@@ -93,6 +114,7 @@ describe('User Routes', () => {
       const response = await request(app).patch('/api/v1/users/1/restore');
 
       expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
       expect(response.body.message).toBe('User restored successfully');
     });
   });

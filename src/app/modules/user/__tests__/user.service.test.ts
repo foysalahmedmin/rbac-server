@@ -9,9 +9,19 @@ describe('UserService', () => {
     id: 1,
     name: 'Test User',
     email: 'test@example.com',
-    role: 'customer',
+    role: { id: 1, name: 'customer' },
     status: 'active',
     is_deleted: false,
+  };
+
+  const mockPaginatedResult = {
+    meta: {
+      page: 1,
+      limit: 10,
+      total: 1,
+      totalPage: 1,
+    },
+    data: [mockUser],
   };
 
   afterEach(() => {
@@ -19,11 +29,13 @@ describe('UserService', () => {
   });
 
   describe('getUsers', () => {
-    it('should return all users', async () => {
-      (UserRepository.findAll as jest.Mock).mockResolvedValue([mockUser]);
-      const result = await UserService.getUsers();
-      expect(result).toEqual([mockUser]);
-      expect(UserRepository.findAll).toHaveBeenCalledTimes(1);
+    it('should return all users with pagination', async () => {
+      (UserRepository.findAll as jest.Mock).mockResolvedValue(
+        mockPaginatedResult,
+      );
+      const result = await UserService.getUsers({});
+      expect(result).toEqual(mockPaginatedResult);
+      expect(UserRepository.findAll).toHaveBeenCalledWith({});
     });
   });
 
@@ -39,6 +51,7 @@ describe('UserService', () => {
   describe('updateUser', () => {
     it('should update a user', async () => {
       const updateData = { name: 'Updated Name' };
+      (UserRepository.findById as jest.Mock).mockResolvedValue(mockUser);
       (UserRepository.update as jest.Mock).mockResolvedValue({
         ...mockUser,
         ...updateData,
@@ -51,6 +64,7 @@ describe('UserService', () => {
 
   describe('deleteUser', () => {
     it('should soft delete a user', async () => {
+      (UserRepository.findById as jest.Mock).mockResolvedValue(mockUser);
       (UserRepository.softDelete as jest.Mock).mockResolvedValue({
         ...mockUser,
         is_deleted: true,

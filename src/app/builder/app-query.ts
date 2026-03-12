@@ -35,12 +35,51 @@ class AppQuery {
       'page',
       'fields',
       'include',
+      'relations',
     ];
     excludeFields.forEach((field) => delete query[field]);
 
+    const formattedQuery: QueryParams = {};
+
+    const castValue = (val: unknown): unknown => {
+      if (typeof val === 'string') {
+        if (val === 'true') return true;
+        if (val === 'false') return false;
+        if (!isNaN(Number(val)) && val.trim() !== '') {
+          return Number(val);
+        }
+      }
+      return val;
+    };
+
+    Object.keys(query).forEach((key) => {
+      let value = query[key];
+
+      if (Array.isArray(value)) {
+        value = { in: value.map((v) => castValue(v)) };
+      } else {
+        value = castValue(value);
+      }
+
+      if (key.includes('.')) {
+        const parts = key.split('.');
+        let current = formattedQuery;
+        for (let i = 0; i < parts.length - 1; i++) {
+          const part = parts[i];
+          if (!current[part] || typeof current[part] !== 'object') {
+            current[part] = {};
+          }
+          current = current[part] as QueryParams;
+        }
+        current[parts[parts.length - 1]] = value;
+      } else {
+        formattedQuery[key] = value;
+      }
+    });
+
     this.where = {
       ...this.where,
-      ...query,
+      ...formattedQuery,
     };
 
     return this;
@@ -55,7 +94,8 @@ class AppQuery {
         return { [fieldName]: direction };
       });
     } else {
-      this.orderBy = [{ created_at: 'desc' }];
+      // Fallback to id if created_at might not exist on all models
+      this.orderBy = [{ id: 'desc' }];
     }
 
     return this;
@@ -77,7 +117,7 @@ class AppQuery {
       const fieldsArr = fields.split(',');
       this.select = fieldsArr.reduce(
         (acc, field) => {
-          acc[field] = true;
+          acc[field.trim()] = true;
           return acc;
         },
         {} as Record<string, boolean>,
@@ -94,7 +134,7 @@ class AppQuery {
       const relationsArr = relations.split(',');
       this.include = relationsArr.reduce(
         (acc, field) => {
-          acc[field] = true;
+          acc[field.trim()] = true;
           return acc;
         },
         {} as Record<string, boolean>,
