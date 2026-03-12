@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import httpStatus from 'http-status';
 import AppError from '../../builder/app-error';
+import { client } from '../../config/db';
 import { env } from '../../config/env';
 import { sendEmail } from '../../utils/send-email';
 import * as AuthRepository from './auth.repository';
@@ -28,8 +29,8 @@ export const signIn = async (payload: TSignIn) => {
     throw new AppError(httpStatus.FORBIDDEN, 'User is deleted!');
   }
 
-  if (user?.status === 'blocked') {
-    throw new AppError(httpStatus.FORBIDDEN, 'User is blocked!');
+  if (user?.status === 'suspended' || user?.status === 'banned') {
+    throw new AppError(httpStatus.FORBIDDEN, `User is ${user.status}!`);
   }
 
   if (!(await isPasswordMatched(payload?.password, user?.password))) {
@@ -40,7 +41,7 @@ export const signIn = async (payload: TSignIn) => {
     id: user.id,
     name: user.name,
     email: user.email,
-    role: user.role,
+    role: user.role.name,
   };
 
   const accessToken = createToken(
@@ -75,18 +76,30 @@ export const signUp = async (payload: TSignUp) => {
     throw new AppError(httpStatus.CONFLICT, 'User already exists!');
   }
 
-  const user = await AuthRepository.create({
-    name: payload.name,
-    email: payload.email,
-    password: payload.password,
-    role: payload.role,
+  // Fetch role by name
+  const role = await client.role.findUnique({
+    where: { name: payload.role || 'customer' },
+  });
+
+  if (!role) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Role not found!');
+  }
+
+  const user = await client.user.create({
+    data: {
+      name: payload.name,
+      email: payload.email,
+      password: payload.password,
+      role_id: role.id,
+    },
+    include: { role: true },
   });
 
   const jwtPayload: TJwtPayload = {
     id: user.id,
     name: user.name,
     email: user.email,
-    role: user.role,
+    role: user.role.name,
   };
 
   const accessToken = createToken(
@@ -121,15 +134,15 @@ export const refreshToken = async (token: string) => {
     throw new AppError(httpStatus.FORBIDDEN, 'User is deleted!');
   }
 
-  if (user?.status === 'blocked') {
-    throw new AppError(httpStatus.FORBIDDEN, 'User is blocked!');
+  if (user?.status === 'suspended' || user?.status === 'banned') {
+    throw new AppError(httpStatus.FORBIDDEN, `User is ${user.status}!`);
   }
 
   const jwtPayload: TJwtPayload = {
     id: user.id,
     name: user.name,
     email: user.email,
-    role: user.role,
+    role: user.role.name,
   };
 
   const accessToken = createToken(
@@ -155,8 +168,8 @@ export const changePassword = async (payload: TChangePassword) => {
     throw new AppError(httpStatus.NOT_FOUND, 'User is deleted!');
   }
 
-  if (user?.status === 'blocked') {
-    throw new AppError(httpStatus.NOT_FOUND, 'User is blocked!');
+  if (user?.status === 'suspended' || user?.status === 'banned') {
+    throw new AppError(httpStatus.FORBIDDEN, `User is ${user.status}!`);
   }
 
   if (!(await isPasswordMatched(payload?.current_password, user?.password))) {
@@ -188,15 +201,15 @@ export const forgetPassword = async (payload: TForgetPassword) => {
     throw new AppError(httpStatus.FORBIDDEN, 'User is deleted!');
   }
 
-  if (user?.status === 'blocked') {
-    throw new AppError(httpStatus.FORBIDDEN, 'User is blocked!');
+  if (user?.status === 'suspended' || user?.status === 'banned') {
+    throw new AppError(httpStatus.FORBIDDEN, `User is ${user.status}!`);
   }
 
   const jwtPayload: TJwtPayload = {
     id: user.id,
     name: user.name,
     email: user.email,
-    role: user.role,
+    role: user.role.name,
   };
 
   const token = createToken(
@@ -228,8 +241,8 @@ export const resetPassword = async (payload: TResetPassword, token: string) => {
     throw new AppError(httpStatus.FORBIDDEN, 'User is deleted!');
   }
 
-  if (user?.status === 'blocked') {
-    throw new AppError(httpStatus.FORBIDDEN, 'User is blocked!');
+  if (user?.status === 'suspended' || user?.status === 'banned') {
+    throw new AppError(httpStatus.FORBIDDEN, `User is ${user.status}!`);
   }
 
   const { email } = verifyToken(token, env.jwt_access_secret);

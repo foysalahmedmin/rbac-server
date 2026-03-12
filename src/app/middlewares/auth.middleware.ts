@@ -42,8 +42,8 @@ const auth = (...roles: TRole[]) => {
         throw new AppError(httpStatus.FORBIDDEN, 'User is deleted!');
       }
 
-      if (user?.status == 'blocked') {
-        throw new AppError(httpStatus.FORBIDDEN, 'User is blocked!');
+      if (user?.status === 'suspended' || user?.status === 'banned') {
+        throw new AppError(httpStatus.FORBIDDEN, `User is ${user.status}!`);
       }
 
       if (

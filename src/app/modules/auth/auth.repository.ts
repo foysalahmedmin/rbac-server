@@ -9,7 +9,8 @@ export const findById = async (id: number) => {
       name: true,
       email: true,
       password: true,
-      role: true,
+      role: true, // Relation object
+      role_id: true,
       status: true,
       is_deleted: true,
       password_changed_at: true,
@@ -28,7 +29,8 @@ export const findByEmail = async (email: string) => {
       name: true,
       email: true,
       password: true,
-      role: true,
+      role: true, // Relation object
+      role_id: true,
       status: true,
       is_deleted: true,
       password_changed_at: true,

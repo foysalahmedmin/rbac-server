@@ -1,1 +1,1 @@
-export type TRole = "admin" | "manager" | "agent" | "customer";
+export type TRole = string;
