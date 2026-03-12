@@ -56,7 +56,7 @@ const auth = (...roles: TRole[]) => {
         throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
       }
 
-      if (roles && !roles.includes(role)) {
+      if (roles && roles.length > 0 && !roles.includes(role)) {
         throw new AppError(
           httpStatus.UNAUTHORIZED,
           'You do not have the necessary permissions to access this resource.',

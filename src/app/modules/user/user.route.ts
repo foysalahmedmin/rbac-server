@@ -1,4 +1,5 @@
 import express from 'express';
+import access from '../../middlewares/access.middleware';
 import auth from '../../middlewares/auth.middleware';
 import validation from '../../middlewares/validation.middleware';
 import * as UserControllers from './user.controller';
@@ -8,42 +9,48 @@ const router = express.Router();
 
 router.get(
   '/me',
-  auth('admin', 'manager', 'agent', 'customer'),
+  auth(), // Anyone logged in can see 'me'
   UserControllers.getMe,
 );
 
 router.patch(
   '/me',
-  auth('admin', 'manager', 'agent', 'customer'),
+  auth(), // Anyone logged in can update 'me'
   validation(UserValidations.updateUserSchema),
   UserControllers.updateMe,
 );
 
-router.get(
-  '/',
-  auth('admin', 'manager', 'agent', 'customer'),
-  UserControllers.getUsers,
-);
+router.get('/', auth(), access('manage_users'), UserControllers.getUsers);
 
-router.get(
-  '/:id',
-  auth('admin', 'manager', 'agent', 'customer'),
-  UserControllers.getUser,
-);
+router.get('/:id', auth(), access('manage_users'), UserControllers.getUser);
 
 router.patch(
   '/:id',
-  auth('admin'),
+  auth(),
+  access('manage_users'),
   validation(UserValidations.updateUserSchema),
   UserControllers.updateUser,
 );
 
-router.delete('/:id', auth('admin'), UserControllers.deleteUser);
+router.delete(
+  '/:id',
+  auth(),
+  access('manage_users'),
+  UserControllers.deleteUser,
+);
+
 router.delete(
   '/:id/permanent',
-  auth('admin'),
+  auth(),
+  access('manage_users'),
   UserControllers.permanentDeleteUser,
 );
-router.patch('/:id/restore', auth('admin'), UserControllers.restoreUser);
+
+router.patch(
+  '/:id/restore',
+  auth(),
+  access('manage_users'),
+  UserControllers.restoreUser,
+);
 
 export default router;

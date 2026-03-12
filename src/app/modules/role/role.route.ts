@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import access from '../../middlewares/access.middleware';
 import auth from '../../middlewares/auth.middleware';
 import validation from '../../middlewares/validation.middleware';
 import * as RoleControllers from './role.controller';
@@ -10,29 +11,38 @@ import {
 
 const router = Router();
 
+// Only those with 'manage_roles' permission can create, update, delete roles
 router.post(
   '/',
-  auth('admin'),
+  auth(), // Check for valid token
+  access('manage_roles'), // Check for specific permission
   validation(createRoleSchema),
   RoleControllers.createRole,
 );
 
-router.get('/', auth('admin', 'manager'), RoleControllers.getRoles);
+router.get('/', auth(), access('manage_roles'), RoleControllers.getRoles);
 
-router.get('/:id', auth('admin', 'manager'), RoleControllers.getRoleById);
+router.get('/:id', auth(), access('manage_roles'), RoleControllers.getRoleById);
 
 router.patch(
   '/:id',
-  auth('admin'),
+  auth(),
+  access('manage_roles'),
   validation(updateRoleSchema),
   RoleControllers.updateRole,
 );
 
-router.delete('/:id', auth('admin'), RoleControllers.deleteRole);
+router.delete(
+  '/:id',
+  auth(),
+  access('manage_roles'),
+  RoleControllers.deleteRole,
+);
 
 router.post(
   '/assign-permissions',
-  auth('admin'),
+  auth(),
+  access('manage_roles'),
   validation(assignPermissionsSchema),
   RoleControllers.assignPermissions,
 );
