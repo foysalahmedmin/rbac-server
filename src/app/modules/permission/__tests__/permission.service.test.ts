@@ -19,7 +19,7 @@ describe('PermissionService', () => {
       page: 1,
       limit: 10,
       total: 1,
-      totalPage: 1,
+      total_page: 1,
     },
     data: [mockPermission],
   };

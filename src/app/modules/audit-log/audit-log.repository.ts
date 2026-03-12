@@ -51,7 +51,7 @@ export const findAll = async (query: Record<string, unknown> = {}) => {
       page,
       limit,
       total,
-      totalPage: Math.ceil(total / limit),
+      total_page: Math.ceil(total / limit),
     },
     data,
   };

@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import * as AuditLogRepository from './audit-log.repository';
 
 export const logAction = async (data: {
@@ -5,7 +6,7 @@ export const logAction = async (data: {
   action: string;
   resource: string;
   resource_id?: string;
-  details?: any;
+  details?: Prisma.InputJsonValue;
   ip_address?: string;
 }) => {
   return await AuditLogRepository.create(data);

@@ -1,14 +1,14 @@
 import request from 'supertest';
 import app from '../../../../app';
-import * as PermissionService from '../permission.service';
+import * as AuditLogService from '../audit-log.service';
 
-// Mock PermissionService
-jest.mock('../permission.service');
+// Mock AuditLogService
+jest.mock('../audit-log.service');
 
 // Mock auth middleware to bypass it
 jest.mock('../../../middlewares/auth.middleware', () => {
   return jest.fn(() => (req: any, _res: any, next: any) => {
-    req.user = { id: 1, role: 'admin', permissions: ['manage_roles'] };
+    req.user = { id: 1, role: 'admin', permissions: ['view_audit_logs'] };
     next();
   });
 });
@@ -20,12 +20,13 @@ jest.mock('../../../middlewares/access.middleware', () => {
   });
 });
 
-describe('Permission Routes', () => {
-  const mockPermission = {
+describe('Audit Log Routes', () => {
+  const mockAuditLog = {
     id: 1,
-    name: 'Manage Users',
-    slug: 'manage_users',
-    module: 'user',
+    user_id: 1,
+    action: 'UPDATE',
+    resource: 'User',
+    resource_id: '1',
   };
 
   const mockPaginatedResult = {
@@ -35,20 +36,20 @@ describe('Permission Routes', () => {
       total: 1,
       total_page: 1,
     },
-    data: [mockPermission],
+    data: [mockAuditLog],
   };
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('GET /api/v1/permissions/', () => {
-    it('should return all permissions with pagination', async () => {
-      (PermissionService.getPermissions as jest.Mock).mockResolvedValue(
+  describe('GET /api/v1/audit-logs/', () => {
+    it('should return all audit logs with pagination', async () => {
+      (AuditLogService.getAllLogs as jest.Mock).mockResolvedValue(
         mockPaginatedResult,
       );
 
-      const response = await request(app).get('/api/v1/permissions/');
+      const response = await request(app).get('/api/v1/audit-logs/');
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -57,17 +58,17 @@ describe('Permission Routes', () => {
     });
   });
 
-  describe('GET /api/v1/permissions/:id', () => {
-    it('should return a permission by id', async () => {
-      (PermissionService.getPermissionById as jest.Mock).mockResolvedValue(
-        mockPermission,
-      );
+  describe('GET /api/v1/audit-logs/me', () => {
+    it('should return current user audit logs', async () => {
+      (AuditLogService.getLogsByUser as jest.Mock).mockResolvedValue([
+        mockAuditLog,
+      ]);
 
-      const response = await request(app).get('/api/v1/permissions/1');
+      const response = await request(app).get('/api/v1/audit-logs/me');
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toEqual(mockPermission);
+      expect(response.body.data).toEqual([mockAuditLog]);
     });
   });
 });
