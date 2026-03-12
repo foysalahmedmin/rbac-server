@@ -73,28 +73,48 @@ export const assignPermissionsToUser = async (
     throw new AppError(httpStatus.NOT_FOUND, 'User not found!');
   }
 
-  const results = [];
-  for (const permission_id of permission_ids) {
-    const permission = await client.permission.findUnique({
-      where: { id: permission_id },
-    });
+  // 1. Fetch requested permissions to get slugs
+  const requestedPermissions = await client.permission.findMany({
+    where: { id: { in: permission_ids } },
+  });
 
-    if (!permission) continue;
-
-    // Grant Ceiling Check
-    if (!grantor_permissions.includes(permission.slug)) {
+  // 2. Grant Ceiling Check
+  for (const perm of requestedPermissions) {
+    if (!grantor_permissions.includes(perm.slug)) {
       throw new AppError(
         httpStatus.FORBIDDEN,
-        `Grant Ceiling: You cannot grant the '${permission.slug}' permission because you don't have it yourself.`,
+        `Grant Ceiling: You cannot grant the '${perm.slug}' permission because you don't have it yourself.`,
       );
     }
-
-    try {
-      const res = await UserRepository.assignPermission(user_id, permission_id);
-      results.push(res);
-    } catch {
-      // Ignore if already assigned
-    }
   }
-  return results;
+
+  // 3. Sync via Transaction
+  return await client.$transaction(async (tx) => {
+    // Remove existing direct permissions
+    await tx.userPermission.deleteMany({
+      where: { user_id },
+    });
+
+    // Assign new ones
+    if (permission_ids.length > 0) {
+      await tx.userPermission.createMany({
+        data: permission_ids.map((id) => ({
+          user_id,
+          permission_id: id,
+        })),
+      });
+    }
+
+    return await tx.user.findUnique({
+      where: { id: user_id },
+      include: {
+        role: true,
+        direct_permissions: {
+          include: {
+            permission: true,
+          },
+        },
+      },
+    });
+  });
 };

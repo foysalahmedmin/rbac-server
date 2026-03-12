@@ -1,5 +1,5 @@
 import { PrismaPg } from '@prisma/adapter-pg';
-import { Permission, PrismaClient, Role } from '@prisma/client';
+import { Permission, Prisma, PrismaClient, Role } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import { Pool } from 'pg';
@@ -16,14 +16,27 @@ async function main() {
   console.log('🌱 Seeding database...');
 
   // 1. Create Permissions
-  const permissionsData = [
+  const permissionsData: Prisma.PermissionCreateInput[] = [
     { name: 'View Dashboard', slug: 'view_dashboard', module: 'dashboard' },
     { name: 'Manage Users', slug: 'manage_users', module: 'users' },
     { name: 'Manage Roles', slug: 'manage_roles', module: 'roles' },
-    { name: 'View Reports', slug: 'view_reports', module: 'reports' },
-    { name: 'Manage Leads', slug: 'manage_leads', module: 'leads' },
-    { name: 'Manage Tasks', slug: 'manage_tasks', module: 'tasks' },
     { name: 'View Audit Logs', slug: 'view_audit_logs', module: 'audit_logs' },
+    // Leads Module
+    { name: 'View Leads', slug: 'view_leads', module: 'leads' },
+    { name: 'Manage Leads', slug: 'manage_leads', module: 'leads' },
+    // Tasks Module
+    { name: 'View Tasks', slug: 'view_tasks', module: 'tasks' },
+    { name: 'Manage Tasks', slug: 'manage_tasks', module: 'tasks' },
+    // Reports Module
+    { name: 'View Reports', slug: 'view_reports', module: 'reports' },
+    { name: 'Manage Reports', slug: 'manage_reports', module: 'reports' },
+    // Others
+    {
+      name: 'Access Customer Portal',
+      slug: 'access_customer_portal',
+      module: 'portal',
+    },
+    { name: 'Manage Settings', slug: 'manage_settings', module: 'settings' },
   ];
 
   const permissions: Permission[] = [];
@@ -112,6 +125,69 @@ async function main() {
       status: 'active',
     },
   });
+
+  // 5. Create Sample Leads
+  const leadsData = [
+    {
+      first_name: 'John',
+      last_name: 'Doe',
+      email: 'john@example.com',
+      source: 'Website',
+      status: 'new',
+    },
+    {
+      first_name: 'Jane',
+      last_name: 'Smith',
+      email: 'jane@example.com',
+      source: 'Referral',
+      status: 'contacted',
+    },
+    {
+      first_name: 'Bob',
+      last_name: 'Wilson',
+      email: 'bob@example.com',
+      source: 'AdCampaign',
+      status: 'qualified',
+    },
+  ];
+
+  for (const l of leadsData) {
+    await prisma.lead.upsert({
+      where: { id: leadsData.indexOf(l) + 1 }, // Using ID for upsert here since email isn't unique in schema currently
+      update: {},
+      create: l,
+    });
+  }
+
+  // 6. Create Sample Tasks
+  const tasksData = [
+    {
+      title: 'Follow up with John',
+      description: 'Call John for initial consultation',
+      status: 'pending',
+      priority: 'high',
+    },
+    {
+      title: 'Send proposal to Jane',
+      description: 'Prepare and email the project proposal',
+      status: 'in-progress',
+      priority: 'medium',
+    },
+    {
+      title: 'Update CRM records',
+      description: 'Clean up old lead data',
+      status: 'completed',
+      priority: 'low',
+    },
+  ];
+
+  for (const t of tasksData) {
+    await prisma.task.upsert({
+      where: { id: tasksData.indexOf(t) + 1 },
+      update: {},
+      create: t,
+    });
+  }
 
   console.log('✅ Seeding completed.');
 }

@@ -192,7 +192,7 @@ export const refreshToken = async (token: string) => {
   );
 
   return {
-    token: accessToken,
+    access_token: accessToken,
     info: jwtPayload,
   };
 };

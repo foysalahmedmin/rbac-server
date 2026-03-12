@@ -55,28 +55,47 @@ export const assignPermissionsToRole = async (
     throw new AppError(httpStatus.NOT_FOUND, 'Role not found!');
   }
 
-  const results = [];
-  for (const permission_id of permission_ids) {
-    const permission = await client.permission.findUnique({
-      where: { id: permission_id },
-    });
+  // 1. Fetch all requested permissions to get their slugs
+  const requestedPermissions = await client.permission.findMany({
+    where: { id: { in: permission_ids } },
+  });
 
-    if (!permission) continue;
-
-    // Grant Ceiling Check: User can only grant permissions they themselves possess
-    if (!grantor_permissions.includes(permission.slug)) {
+  // 2. Grant Ceiling Check: User can only grant permissions they themselves possess
+  for (const perm of requestedPermissions) {
+    if (!grantor_permissions.includes(perm.slug)) {
       throw new AppError(
         httpStatus.FORBIDDEN,
-        `Grant Ceiling: You cannot grant the '${permission.slug}' permission because you don't have it yourself.`,
+        `Grant Ceiling: You cannot grant the '${perm.slug}' permission because you don't have it yourself.`,
       );
     }
-
-    try {
-      const res = await RoleRepository.assignPermission(role_id, permission_id);
-      results.push(res);
-    } catch {
-      // Ignore if already assigned
-    }
   }
-  return results;
+
+  // 3. Perform Sync in a Transaction
+  return await client.$transaction(async (tx) => {
+    // Remove all existing permissions for this role
+    await tx.rolePermission.deleteMany({
+      where: { role_id },
+    });
+
+    // Assign new permissions
+    if (permission_ids.length > 0) {
+      await tx.rolePermission.createMany({
+        data: permission_ids.map((id) => ({
+          role_id,
+          permission_id: id,
+        })),
+      });
+    }
+
+    return await tx.role.findUnique({
+      where: { id: role_id },
+      include: {
+        permissions: {
+          include: {
+            permission: true,
+          },
+        },
+      },
+    });
+  });
 };

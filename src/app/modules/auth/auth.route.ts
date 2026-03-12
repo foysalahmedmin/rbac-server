@@ -1,5 +1,6 @@
 import express from 'express';
 import auth from '../../middlewares/auth.middleware';
+import { authRateLimiter } from '../../middlewares/rate-limit.middleware';
 import validation from '../../middlewares/validation.middleware';
 import * as AuthControllers from './auth.controller';
 import * as AuthValidations from './auth.validation';
@@ -8,12 +9,14 @@ const router = express.Router();
 
 router.post(
   '/signup',
+  authRateLimiter,
   validation(AuthValidations.signupSchema),
   AuthControllers.signUp,
 );
 
 router.post(
   '/signin',
+  authRateLimiter,
   validation(AuthValidations.signinSchema),
   AuthControllers.signIn,
 );
@@ -33,12 +36,14 @@ router.patch(
 
 router.post(
   '/forget-password',
+  authRateLimiter,
   validation(AuthValidations.forgetPasswordSchema),
   AuthControllers.forgetPassword,
 );
 
 router.patch(
   '/reset-password',
+  authRateLimiter,
   validation(AuthValidations.resetPasswordSchema),
   AuthControllers.resetPassword,
 );

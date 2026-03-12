@@ -29,6 +29,7 @@ model User {
   role                Role              @relation(fields: [role_id], references: [id])
   direct_permissions  UserPermission[]
   audit_logs          AuditLog[]
+  tasks               Task[]
 
   @@map("users")
 }
@@ -95,4 +96,45 @@ model AuditLog {
   user        User     @relation(fields: [user_id], references: [id])
 
   @@map("audit_logs")
+}
+
+model Lead {
+  id          Int      @id @default(autoincrement())
+  first_name  String
+  last_name   String
+  email       String
+  phone       String?
+  source      String?
+  status      String   @default("new")
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("leads")
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  status      String   @default("pending")
+  priority    String   @default("medium")
+  due_date    DateTime?
+  assignee_id Int?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  assignee    User?    @relation(fields: [assignee_id], references: [id])
+
+  @@map("tasks")
+}
+
+model Report {
+  id          Int      @id @default(autoincrement())
+  name        String
+  type        String
+  data        Json
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("reports")
 }

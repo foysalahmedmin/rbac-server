@@ -1,8 +1,11 @@
 import express from 'express';
 import { AuditLogRoutes } from '../modules/audit-log/audit-log.route';
 import authRouter from '../modules/auth/auth.route';
+import { LeadRoutes } from '../modules/lead/lead.route';
 import { PermissionRoutes } from '../modules/permission/permission.route';
+import { ReportRoutes } from '../modules/report/report.route';
 import { RoleRoutes } from '../modules/role/role.route';
+import { TaskRoutes } from '../modules/task/task.route';
 import userRouter from '../modules/user/user.route';
 
 const router = express.Router();
@@ -27,6 +30,18 @@ const moduleRoutes = [
   {
     path: '/audit-logs',
     route: AuditLogRoutes,
+  },
+  {
+    path: '/leads',
+    route: LeadRoutes,
+  },
+  {
+    path: '/tasks',
+    route: TaskRoutes,
+  },
+  {
+    path: '/reports',
+    route: ReportRoutes,
   },
 ];
 
