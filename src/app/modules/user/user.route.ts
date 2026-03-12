@@ -15,7 +15,7 @@ router.get(
 router.patch(
   '/me',
   auth('admin', 'manager', 'agent', 'customer'),
-  validation(UserValidations.userSchema.partial()),
+  validation(UserValidations.updateUserSchema),
   UserControllers.updateMe,
 );
 
@@ -34,7 +34,7 @@ router.get(
 router.patch(
   '/:id',
   auth('admin'),
-  validation(UserValidations.userSchema.partial()),
+  validation(UserValidations.updateUserSchema),
   UserControllers.updateUser,
 );
 
