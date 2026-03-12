@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "binary"
 }
 
@@ -9,30 +9,90 @@ datasource db {
 
 enum Status {
   active
-  blocked
-}
-
-enum Role {
-  admin
-  manager
-  agent
-  customer
+  suspended
+  banned
 }
 
 model User {
-  id         Int     @id @default(autoincrement())
-  name       String
-  email      String  @unique
-  password   String
-  role       Role    @default(customer)
-  status     Status  @default(active)
-  is_deleted Boolean @default(false)
-
+  id                  Int               @id @default(autoincrement())
+  name                String
+  email               String            @unique
+  password            String
+  role_id             Int
+  status              Status            @default(active)
+  is_deleted          Boolean           @default(false)
   deleted_at          DateTime?
   password_changed_at DateTime?
-
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  created_at          DateTime          @default(now())
+  updated_at          DateTime          @updatedAt
+  
+  role                Role              @relation(fields: [role_id], references: [id])
+  direct_permissions  UserPermission[]
+  audit_logs          AuditLog[]
 
   @@map("users")
+}
+
+model Role {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  description String?
+  created_at  DateTime         @default(now())
+  updated_at  DateTime         @updatedAt
+
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          Int              @id @default(autoincrement())
+  name        String
+  slug        String           @unique
+  module      String
+  created_at  DateTime         @default(now())
+  updated_at  DateTime         @updatedAt
+
+  roles       RolePermission[]
+  users       UserPermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  role_id       Int
+  permission_id Int
+  
+  role          Role       @relation(fields: [role_id], references: [id])
+  permission    Permission @relation(fields: [permission_id], references: [id])
+
+  @@id([role_id, permission_id])
+  @@map("role_permissions")
+}
+
+model UserPermission {
+  user_id       Int
+  permission_id Int
+  
+  user          User       @relation(fields: [user_id], references: [id])
+  permission    Permission @relation(fields: [permission_id], references: [id])
+
+  @@id([user_id, permission_id])
+  @@map("user_permissions")
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  action      String
+  resource    String
+  resource_id String?
+  details     Json?
+  ip_address  String?
+  created_at  DateTime @default(now())
+
+  user        User     @relation(fields: [user_id], references: [id])
+
+  @@map("audit_logs")
 }
