@@ -25,10 +25,10 @@ export const restoreUser = async (id: number) => {
   return await UserRepository.restore(id);
 };
 
-export const getSelf = async (id: number) => {
+export const getMe = async (id: number) => {
   return await UserRepository.findById(id);
 };
 
-export const updateSelf = async (id: number, data: Prisma.UserUpdateInput) => {
+export const updateMe = async (id: number, data: Prisma.UserUpdateInput) => {
   return await UserRepository.update(id, data);
 };

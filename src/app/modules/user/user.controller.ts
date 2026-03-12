@@ -76,9 +76,9 @@ export const permanentDeleteUser = catchAsync(
   },
 );
 
-export const getSelf = catchAsync(async (req: Request, res: Response) => {
+export const getMe = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id as number;
-  const result = await UserService.getSelf(userId);
+  const result = await UserService.getMe(userId);
 
   sendResponse(res, {
     status: 200,
@@ -88,9 +88,9 @@ export const getSelf = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const updateSelf = catchAsync(async (req: Request, res: Response) => {
+export const updateMe = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id as number;
-  const result = await UserService.updateSelf(userId, req.body);
+  const result = await UserService.updateMe(userId, req.body);
 
   sendResponse(res, {
     status: 200,

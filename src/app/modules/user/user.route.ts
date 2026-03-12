@@ -6,18 +6,17 @@ import * as UserValidations from './user.validation';
 
 const router = express.Router();
 
-// /self routes MUST come before /:id to avoid being matched as a param
 router.get(
-  '/self',
+  '/me',
   auth('admin', 'manager', 'agent', 'customer'),
-  UserControllers.getSelf,
+  UserControllers.getMe,
 );
 
 router.patch(
-  '/self',
+  '/me',
   auth('admin', 'manager', 'agent', 'customer'),
   validation(UserValidations.userSchema.partial()),
-  UserControllers.updateSelf,
+  UserControllers.updateMe,
 );
 
 router.get(
