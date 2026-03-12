@@ -127,9 +127,11 @@ export const banUser = catchAsync(async (req: Request, res: Response) => {
 export const assignPermissions = catchAsync(
   async (req: Request, res: Response) => {
     const { user_id, permission_ids } = req.body;
+    const grantor_permissions = req.user?.permissions || [];
     const result = await UserService.assignPermissionsToUser(
       user_id,
       permission_ids,
+      grantor_permissions,
     );
 
     sendResponse(res, {

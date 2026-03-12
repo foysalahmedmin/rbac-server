@@ -1,5 +1,6 @@
 import httpStatus from 'http-status';
 import AppError from '../../builder/app-error';
+import { client } from '../../config/db';
 import * as UserRepository from './user.repository';
 
 export const getUsers = async () => {
@@ -61,6 +62,7 @@ export const banUser = async (id: number) => {
 export const assignPermissionsToUser = async (
   user_id: number,
   permission_ids: number[],
+  grantor_permissions: string[],
 ) => {
   const user = await UserRepository.findById(user_id);
   if (!user) {
@@ -69,6 +71,20 @@ export const assignPermissionsToUser = async (
 
   const results = [];
   for (const permission_id of permission_ids) {
+    const permission = await client.permission.findUnique({
+      where: { id: permission_id },
+    });
+
+    if (!permission) continue;
+
+    // Grant Ceiling Check
+    if (!grantor_permissions.includes(permission.slug)) {
+      throw new AppError(
+        httpStatus.FORBIDDEN,
+        `Grant Ceiling: You cannot grant the '${permission.slug}' permission because you don't have it yourself.`,
+      );
+    }
+
     try {
       const res = await UserRepository.assignPermission(user_id, permission_id);
       results.push(res);

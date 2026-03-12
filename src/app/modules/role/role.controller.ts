@@ -55,9 +55,11 @@ export const deleteRole = catchAsync(async (req, res) => {
 
 export const assignPermissions = catchAsync(async (req, res) => {
   const { role_id, permission_ids } = req.body;
+  const grantor_permissions = req.user?.permissions || [];
   const result = await RoleServices.assignPermissionsToRole(
     role_id,
     permission_ids,
+    grantor_permissions,
   );
   sendResponse(res, {
     status: httpStatus.OK,
