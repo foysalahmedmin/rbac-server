@@ -14,6 +14,11 @@ export const signIn = catchAsync(async (req, res) => {
     httpOnly: true,
   });
 
+  res.cookie('access_token', access_token, {
+    secure: env.NODE_ENV === 'production',
+    httpOnly: true,
+  });
+
   sendResponse(res, {
     status: httpStatus.OK,
     success: true,
@@ -31,6 +36,11 @@ export const signUp = catchAsync(async (req, res) => {
   );
 
   res.cookie('refresh_token', refresh_token, {
+    secure: env.NODE_ENV === 'production',
+    httpOnly: true,
+  });
+
+  res.cookie('access_token', access_token, {
     secure: env.NODE_ENV === 'production',
     httpOnly: true,
   });
