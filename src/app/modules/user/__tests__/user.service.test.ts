@@ -4,6 +4,27 @@ import * as UserService from '../user.service';
 // Mock UserRepository
 jest.mock('../user.repository');
 
+// Mock client
+jest.mock('../../../config/db', () => ({
+  client: {
+    permission: {
+      findMany: jest.fn(),
+    },
+    user: {
+      findUnique: jest.fn(),
+    },
+    userPermission: {
+      deleteMany: jest.fn(),
+      createMany: jest.fn(),
+    },
+    $transaction: jest.fn(),
+  },
+}));
+
+import httpStatus from 'http-status';
+import AppError from '../../../builder/app-error';
+import { client } from '../../../config/db';
+
 describe('UserService', () => {
   const mockUser = {
     id: 1,
@@ -101,6 +122,56 @@ describe('UserService', () => {
       (UserRepository.findById as jest.Mock).mockResolvedValue(mockUser);
       const result = await UserService.getMe(1);
       expect(result).toEqual(mockUser);
+    });
+  });
+
+  describe('assignPermissionsToUser', () => {
+    it('should successfully assign direct permissions to a user', async () => {
+      (UserRepository.findById as jest.Mock).mockResolvedValue(mockUser);
+      (client.permission.findMany as jest.Mock).mockResolvedValue([
+        { id: 1, slug: 'manage_users' },
+      ]);
+      (client.$transaction as jest.Mock).mockImplementation(
+        async (callback) => {
+          return await callback(client);
+        },
+      );
+      (client.userPermission.deleteMany as jest.Mock).mockResolvedValue({
+        count: 1,
+      });
+      (client.userPermission.createMany as jest.Mock).mockResolvedValue({
+        count: 1,
+      });
+      (client.user.findUnique as jest.Mock).mockResolvedValue({
+        ...mockUser,
+        direct_permissions: [{ permission: { id: 1, slug: 'manage_users' } }],
+      });
+
+      const result = await UserService.assignPermissionsToUser(
+        1,
+        [1],
+        ['manage_users'],
+      );
+
+      expect(result!.direct_permissions).toHaveLength(1);
+      expect(client.userPermission.deleteMany).toHaveBeenCalled();
+      expect(client.userPermission.createMany).toHaveBeenCalled();
+    });
+
+    it('should throw error if grantor lacks permission (Grant Ceiling)', async () => {
+      (UserRepository.findById as jest.Mock).mockResolvedValue(mockUser);
+      (client.permission.findMany as jest.Mock).mockResolvedValue([
+        { id: 1, slug: 'manage_roles' },
+      ]);
+
+      await expect(
+        UserService.assignPermissionsToUser(1, [1], ['manage_users']),
+      ).rejects.toThrow(
+        new AppError(
+          httpStatus.FORBIDDEN,
+          "Grant Ceiling: You cannot grant the 'manage_roles' permission because you don't have it yourself.",
+        ),
+      );
     });
   });
 });

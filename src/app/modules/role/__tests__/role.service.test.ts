@@ -12,7 +12,16 @@ jest.mock('../../../config/db', () => ({
   client: {
     permission: {
       findUnique: jest.fn(),
+      findMany: jest.fn(),
     },
+    role: {
+      findUnique: jest.fn(),
+    },
+    rolePermission: {
+      deleteMany: jest.fn(),
+      createMany: jest.fn(),
+    },
+    $transaction: jest.fn(),
   },
 }));
 
@@ -116,13 +125,23 @@ describe('RoleService', () => {
   describe('assignPermissionsToRole', () => {
     it('should successfully assign permissions to a role', async () => {
       (RoleRepository.findById as jest.Mock).mockResolvedValue(mockRole);
-      (client.permission.findUnique as jest.Mock).mockResolvedValue({
-        id: 1,
-        slug: 'manage_users',
+      (client.permission.findMany as jest.Mock).mockResolvedValue([
+        { id: 1, slug: 'manage_users' },
+      ]);
+      (client.$transaction as jest.Mock).mockImplementation(
+        async (callback) => {
+          return await callback(client);
+        },
+      );
+      (client.rolePermission.deleteMany as jest.Mock).mockResolvedValue({
+        count: 1,
       });
-      (RoleRepository.assignPermission as jest.Mock).mockResolvedValue({
-        role_id: 1,
-        permission_id: 1,
+      (client.rolePermission.createMany as jest.Mock).mockResolvedValue({
+        count: 1,
+      });
+      (client.role.findUnique as jest.Mock).mockResolvedValue({
+        ...mockRole,
+        permissions: [{ permission: { id: 1, slug: 'manage_users' } }],
       });
 
       const result = await RoleService.assignPermissionsToRole(
@@ -131,16 +150,16 @@ describe('RoleService', () => {
         ['manage_users'],
       );
 
-      expect(result).toHaveLength(1);
-      expect(RoleRepository.assignPermission).toHaveBeenCalledWith(1, 1);
+      expect(result!.permissions).toHaveLength(1);
+      expect(client.rolePermission.deleteMany).toHaveBeenCalled();
+      expect(client.rolePermission.createMany).toHaveBeenCalled();
     });
 
     it('should throw error if grantor lacks permission (Grant Ceiling)', async () => {
       (RoleRepository.findById as jest.Mock).mockResolvedValue(mockRole);
-      (client.permission.findUnique as jest.Mock).mockResolvedValue({
-        id: 1,
-        slug: 'manage_roles',
-      });
+      (client.permission.findMany as jest.Mock).mockResolvedValue([
+        { id: 1, slug: 'manage_roles' },
+      ]);
 
       await expect(
         RoleService.assignPermissionsToRole(1, [1], ['manage_users']),

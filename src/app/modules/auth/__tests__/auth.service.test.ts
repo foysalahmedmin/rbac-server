@@ -130,4 +130,51 @@ describe('AuthService', () => {
       expect(result).toEqual(mockUser);
     });
   });
+
+  describe('refreshToken', () => {
+    it('should successfully refresh access token', async () => {
+      (AuthRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
+      const result = await AuthService.refreshToken('refresh-token');
+      expect(result).toHaveProperty('access_token');
+      expect(result.info.email).toBe(mockUser.email);
+    });
+
+    it('should throw error if user in token not found', async () => {
+      (AuthRepository.findByEmail as jest.Mock).mockResolvedValue(null);
+      await expect(AuthService.refreshToken('token')).rejects.toThrow(
+        new AppError(httpStatus.NOT_FOUND, 'User not found!'),
+      );
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('should successfully reset user password', async () => {
+      (AuthRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('new-hashed-password');
+      (AuthRepository.update as jest.Mock).mockResolvedValue({
+        ...mockUser,
+        password: 'new-hashed-password',
+      });
+
+      const result = await AuthService.resetPassword(
+        { email: 'test@example.com', password: 'new-password' },
+        'reset-token',
+      );
+
+      expect(result.password).toBe('new-hashed-password');
+      expect(AuthRepository.update).toHaveBeenCalled();
+    });
+
+    it('should throw error if email in payload does not match token', async () => {
+      (AuthRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
+      await expect(
+        AuthService.resetPassword(
+          { email: 'other@example.com', password: 'any' },
+          'token',
+        ),
+      ).rejects.toThrow(
+        new AppError(httpStatus.FORBIDDEN, 'User is forbidden!'),
+      );
+    });
+  });
 });
