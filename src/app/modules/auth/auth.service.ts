@@ -170,6 +170,7 @@ export const changePassword = async (payload: TChangePassword) => {
 
   const result = await AuthRepository.update(user.id, {
     password: hashedNewPassword,
+    password_changed_at: new Date(),
     updated_at: new Date(),
   });
 
@@ -244,6 +245,7 @@ export const resetPassword = async (payload: TResetPassword, token: string) => {
 
   const result = await AuthRepository.update(user.id, {
     password: hashedPassword,
+    password_changed_at: new Date(),
     updated_at: new Date(),
   });
 

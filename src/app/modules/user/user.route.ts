@@ -7,7 +7,11 @@ import * as UserValidations from './user.validation';
 const router = express.Router();
 
 // /self routes MUST come before /:id to avoid being matched as a param
-router.get('/self', auth('admin', 'manager', 'agent', 'customer'), UserControllers.getSelf);
+router.get(
+  '/self',
+  auth('admin', 'manager', 'agent', 'customer'),
+  UserControllers.getSelf,
+);
 
 router.patch(
   '/self',
@@ -16,9 +20,17 @@ router.patch(
   UserControllers.updateSelf,
 );
 
-router.get('/', auth('admin', 'manager', 'agent', 'customer'), UserControllers.getUsers);
+router.get(
+  '/',
+  auth('admin', 'manager', 'agent', 'customer'),
+  UserControllers.getUsers,
+);
 
-router.get('/:id', auth('admin', 'manager', 'agent', 'customer'), UserControllers.getUser);
+router.get(
+  '/:id',
+  auth('admin', 'manager', 'agent', 'customer'),
+  UserControllers.getUser,
+);
 
 router.patch(
   '/:id',
@@ -28,5 +40,11 @@ router.patch(
 );
 
 router.delete('/:id', auth('admin'), UserControllers.deleteUser);
+router.delete(
+  '/:id/permanent',
+  auth('admin'),
+  UserControllers.permanentDeleteUser,
+);
+router.patch('/:id/restore', auth('admin'), UserControllers.restoreUser);
 
 export default router;

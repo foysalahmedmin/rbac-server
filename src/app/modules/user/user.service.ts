@@ -14,7 +14,15 @@ export const updateUser = async (id: number, data: Prisma.UserUpdateInput) => {
 };
 
 export const deleteUser = async (id: number) => {
+  return await UserRepository.softDelete(id);
+};
+
+export const permanentDeleteUser = async (id: number) => {
   return await UserRepository.remove(id);
+};
+
+export const restoreUser = async (id: number) => {
+  return await UserRepository.restore(id);
 };
 
 export const getSelf = async (id: number) => {
