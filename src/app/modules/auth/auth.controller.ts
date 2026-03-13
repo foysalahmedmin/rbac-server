@@ -24,7 +24,7 @@ export const signIn = catchAsync(async (req, res) => {
     success: true,
     message: 'User is singed in successfully!',
     data: {
-      token: access_token,
+      access_token: access_token,
       info: info,
     },
   });
@@ -50,7 +50,7 @@ export const signUp = catchAsync(async (req, res) => {
     success: true,
     message: 'User is singed up successfully!',
     data: {
-      token: access_token,
+      access_token: access_token,
       info: info,
     },
   });

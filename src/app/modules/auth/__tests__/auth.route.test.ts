@@ -28,7 +28,7 @@ describe('Auth Routes', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toHaveProperty('token');
+      expect(response.body.data).toHaveProperty('access_token');
     });
 
     it('should return 400 if validation fails', async () => {
@@ -51,7 +51,7 @@ describe('Auth Routes', () => {
       });
 
       expect(response.status).toBe(200);
-      expect(response.body.data).toHaveProperty('token');
+      expect(response.body.data).toHaveProperty('access_token');
     });
   });
 });
