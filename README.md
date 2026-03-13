@@ -585,4 +585,4 @@ sequenceDiagram
 
 ## License
 
-Proprietary and Confidential — Digital Pylot. Unauthorized duplication or distribution is strictly prohibited.
+Proprietary and Confidential. Unauthorized duplication or distribution is strictly prohibited.
