@@ -57,6 +57,33 @@ describe('Permission Routes', () => {
     });
   });
 
+  describe('GET /api/v1/permissions/grouped', () => {
+    it('should return grouped permissions', async () => {
+      const mockGrouped = {
+        user: [mockPermission],
+        role: [
+          {
+            id: 2,
+            name: 'Manage Roles',
+            slug: 'manage_roles',
+            module: 'role',
+          },
+        ],
+      };
+      (
+        PermissionService.getGroupedPermissions as jest.Mock
+      ).mockResolvedValue(mockGrouped);
+
+      const response = await request(app).get(
+        '/api/v1/permissions/grouped',
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toEqual(mockGrouped);
+    });
+  });
+
   describe('GET /api/v1/permissions/:id', () => {
     it('should return a permission by id', async () => {
       (PermissionService.getPermissionById as jest.Mock).mockResolvedValue(

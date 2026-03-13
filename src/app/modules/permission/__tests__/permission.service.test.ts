@@ -56,4 +56,26 @@ describe('PermissionService', () => {
       );
     });
   });
+
+  describe('getGroupedPermissions', () => {
+    it('should return grouped permissions', async () => {
+      const mockGrouped = {
+        user: [mockPermission],
+        role: [
+          {
+            id: 2,
+            name: 'Manage Roles',
+            slug: 'manage_roles',
+            module: 'role',
+          },
+        ],
+      };
+      (PermissionRepository.findGrouped as jest.Mock).mockResolvedValue(
+        mockGrouped,
+      );
+      const result = await PermissionService.getGroupedPermissions();
+      expect(result).toEqual(mockGrouped);
+      expect(PermissionRepository.findGrouped).toHaveBeenCalled();
+    });
+  });
 });

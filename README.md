@@ -391,10 +391,11 @@ All routes are served under the `/api/v1` namespace. Every protected route requi
 
 ### Permissions — `/api/v1/permissions`
 
-| Method | Endpoint | Permission     | Description                              |
-| :----- | :------- | :------------- | :--------------------------------------- |
-| `GET`  | `/`      | `manage_roles` | List all permissions (grouped by module) |
-| `GET`  | `/:id`   | `manage_roles` | Get a single permission by ID            |
+| Method | Endpoint   | Permission     | Description                                |
+| :----- | :--------- | :------------- | :----------------------------------------- |
+| `GET`  | `/`        | `manage_roles` | List all permissions with pagination       |
+| `GET`  | `/grouped` | `manage_roles` | Get all permissions grouped by module name |
+| `GET`  | `/:id`     | `manage_roles` | Get a single permission by ID              |
 
 ### Audit Logs — `/api/v1/audit-logs`
 
