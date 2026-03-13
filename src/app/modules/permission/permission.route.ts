@@ -5,12 +5,18 @@ import * as PermissionControllers from './permission.controller';
 
 const router = Router();
 
-// Viewing permissions is generally for those who can manage roles or users
 router.get(
   '/',
   auth(),
   access('manage_roles'),
   PermissionControllers.getPermissions,
+);
+
+router.get(
+  '/grouped',
+  auth(),
+  access('manage_roles'),
+  PermissionControllers.getGroupedPermissions,
 );
 
 router.get(

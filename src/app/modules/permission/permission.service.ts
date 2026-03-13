@@ -13,3 +13,7 @@ export const getPermissionById = async (id: number) => {
   }
   return permission;
 };
+
+export const getGroupedPermissions = async () => {
+  return await PermissionRepository.findGrouped();
+};

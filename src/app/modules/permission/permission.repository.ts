@@ -42,3 +42,20 @@ export const findBySlug = async (slug: string) => {
     where: { slug },
   });
 };
+
+export const findGrouped = async () => {
+  const permissions = await client.permission.findMany({
+    orderBy: { module: 'asc' },
+  });
+
+  const grouped = permissions.reduce(
+    (acc, p) => {
+      if (!acc[p.module]) acc[p.module] = [];
+      acc[p.module].push(p);
+      return acc;
+    },
+    {} as Record<string, typeof permissions>,
+  );
+
+  return grouped;
+};

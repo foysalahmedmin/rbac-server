@@ -27,3 +27,13 @@ export const getPermissionById = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
+export const getGroupedPermissions = catchAsync(async (_req, res) => {
+  const result = await PermissionServices.getGroupedPermissions();
+  sendResponse(res, {
+    status: httpStatus.OK,
+    success: true,
+    message: 'Grouped permissions fetched successfully',
+    data: result,
+  });
+});
