@@ -41,7 +41,7 @@ This high-performance, enterprise-grade backend API powers a **Dynamic Permissio
 
 ### Authentication & Security
 
-- **JWT Dual-Token Architecture**: Short-lived `access_token` (1h) delivered in response body and a long-lived `refresh_token` (7d) stored in a secure `httpOnly` cookie for seamless token rotation.
+- **JWT Dual-Token Architecture**: Short-lived `access_token` (15m) delivered in response body and a long-lived `refresh_token` (7d) stored in a secure `httpOnly` cookie for seamless token rotation.
 - **Rate Limiting**: Dedicated `authRateLimiter` on all `/api/v1/auth` endpoints to prevent brute-force attacks, alongside a global limiter for system-wide traffic governance.
 - **Password Security**: Bcrypt hashing with configurable salt rounds (default: 12) and invalidation logic: any token issued before the last `password_changed_at` timestamp is automatically rejected.
 - **Password Reset Flow**: Email-based OTP/link for forgotten passwords via `Nodemailer`.
