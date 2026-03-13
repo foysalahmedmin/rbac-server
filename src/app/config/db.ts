@@ -1,9 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
-import pkg from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { userStorage } from '../utils/async-storage';
-
-const { PrismaClient } = pkg;
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -32,8 +30,11 @@ export const client = prisma.$extends({
           const userId = userStorage.getStore()?.id;
 
           if (userId) {
-            const anyArgs = args as any;
-            const anyResult = result as any;
+            const auditArgs = args as {
+              where?: { id?: unknown };
+              data?: unknown;
+            };
+            const auditResult = result as { id?: unknown };
 
             // Log the action asynchronously to not block the main request
             prisma.auditLog
@@ -42,12 +43,13 @@ export const client = prisma.$extends({
                   user_id: userId,
                   action: operation.toUpperCase(),
                   resource: model,
-                  resource_id: anyArgs.where?.id
-                    ? String(anyArgs.where.id)
-                    : anyResult?.id
-                      ? String(anyResult.id)
+                  resource_id: auditArgs.where?.id
+                    ? String(auditArgs.where.id)
+                    : auditResult?.id
+                      ? String(auditResult.id)
                       : undefined,
-                  details: anyArgs.data || anyArgs,
+                  details: (auditArgs.data ||
+                    auditArgs) as Prisma.InputJsonValue,
                 },
               })
               .catch((err) => {
